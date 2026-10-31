@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+disclosures.json
+holder_key.txt
+credential.json
+attributes.txt
+issuer_pub.txt
+.env
+
+*.log
+.DS_Store

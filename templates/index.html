@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SelectiveID — Holder</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px}
+  .attr{display:flex;gap:8px;align-items:center;margin:6px 0}
+  #out{white-space:pre-wrap;background:#f6f8fa;border:1px solid #ddd;border-radius:8px;
+       padding:12px;margin-top:16px;min-height:3em}
+  .ok{color:#0a7a2f;font-weight:700}.bad{color:#b00020;font-weight:700}
+  button{padding:10px 16px;font-size:15px;border-radius:8px;border:1px solid #333;
+         background:#111;color:#fff;cursor:pointer}
+  code{background:#eee;padding:2px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<h2>SelectiveID — Holder</h2>
+<p>Verifier: <code>{{ verifier }}</code></p>
+<p>Check the facts to reveal. <b>Everything unchecked never leaves this machine.</b></p>
+
+<div id="attrs">
+  {% for a in attributes %}
+  <label class="attr">
+    <input type="checkbox" value="{{ a }}" {% if a == 'age_over_18' %}checked{% endif %}>
+    {{ a }}
+  </label>
+  {% endfor %}
+</div>
+
+<button id="go">Prove to verifier</button>
+<div id="out">No presentation sent yet.</div>
+
+<script>
+document.getElementById('go').onclick = async () => {
+  const reveal = [...document.querySelectorAll('#attrs input:checked')].map(i => i.value);
+  const out = document.getElementById('out');
+  out.textContent = 'Fetching challenge, signing, sending…';
+  try {
+    const r = await fetch('/api/prove', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({reveal})
+    });
+    const j = await r.json();
+    out.innerHTML = j.ok
+      ? '<span class="ok">ACCEPTED</span> — verifier learned only: <code>'
+        + JSON.stringify(j.result) + '</code>'
+      : '<span class="bad">REJECTED</span> — <code>' + JSON.stringify(j.result) + '</code>';
+  } catch (e) {
+    out.innerHTML = '<span class="bad">ERROR</span> — ' + e;
+  }
+};
+</script>
+</body>
+</html>
